@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Inventory App</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        const { Camera, Download, Trash2, Plus, Globe, FileSpreadsheet, Mail, Save } = lucide;
+
+```
+    const MedicineInventoryApp = () => {
+        const [medicines, setMedicines] = useState([]);
+        const [currentImage, setCurrentImage] = useState(null);
+        const [isProcessing, setIsProcessing] = useState(false);
+        const [language, setLanguage] = useState('en');
+        const [editingMedicine, setEditingMedicine] = useState(null);
+        const fileInputRef = useRef(null);
+        const videoRef = useRef(null);
+        const canvasRef = useRef(null);
+        const [isCameraActive, setIsCameraActive] = useState(false);
+        const [stream, setStream] = useState(null);
+
+        // Translation dictionary
+        const translations = {
+            en: {
+                title: 'Medicine Inventory',
+                capturePhoto: 'Capture Photo',
+                uploadImage: 'Upload Image',
+                processing: 'Processing...',
+                name: 'Medicine Name',
+                strength: 'Strength (mg)',
+                quantity: 'Quantity',
+                purpose: 'Purpose/Benefits',
+                actions: 'Actions',
+                exportCSV: 'Export to CSV',
+                shareEmail: 'Share via Email',
+                saveDevice: 'Save to Device',
+                noMedicines: 'No medicines added yet',
+                startCamera: 'Start Camera',
+                stopCamera: 'Stop Camera',
+                takePhoto: 'Take Photo',
+                retake: 'Retake',
+                usePhoto: 'Use This Photo',
+                addManually: 'Add Manually',
+                edit: 'Edit',
+                delete: 'Delete',
+                save: 'Save',
+                cancel: 'Cancel',
+                developedBy: 'Developed by Hassan 2026',
+                version: 'Version 1.0.0'
+            },
+            ar: {
+                title: 'جرد الأدوية',
+                capturePhoto: 'التقاط صورة',
+                uploadImage: 'رفع صورة',
+                processing: 'جاري المعالجة...',
+                name: 'اسم الدواء',
+                strength: 'القوة (ملغ)',
+                quantity: 'الكمية',
+                purpose: 'الفائدة/الاستخدام',
+                actions: 'الإجراءات',
+                exportCSV: 'تصدير إلى CSV',
+                shareEmail: 'مشاركة عبر البريد',
+                saveDevice: 'حفظ على الجهاز',
+                noMedicines: 'لم تتم إضافة أدوية بعد',
+                startCamera: 'تشغيل الكاميرا',
+                stopCamera: 'إيقاف الكاميرا',
+                takePhoto: 'التقاط صورة',
+                retake: 'إعادة التقاط',
+                usePhoto: 'استخدام هذه الصورة',
+                addManually: 'إضافة يدوية',
+                edit: 'تعديل',
+                delete: 'حذف',
+                save: 'حفظ',
+                cancel: 'إلغاء',
+                developedBy: 'تم التطوير بواسطة حسن ٢٠٢٦',
+                version: 'الإصدار 1.0.0'
+            }
+        };
+
+        const t = translations[language];
+
+        // Load saved data on mount
+        useEffect(() => {
+            const savedData = localStorage.getItem('medicineInventory');
+            if (savedData) {
+                setMedicines(JSON.parse(savedData));
+            }
+        }, []);
+
+        // Camera functions
+        const startCamera = async () => {
+            try {
+                const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                if (videoRef.current) {
+                    videoRef.current.srcObject = mediaStream;
+                }
+                setStream(mediaStream);
+                setIsCameraActive(true);
+            } catch (err) {
+                console.error('Camera access denied:', err);
+                alert('Camera access denied. Please check permissions.');
+            }
+        };
+
+        const stopCamera = () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            setIsCameraActive(false);
+            setStream(null);
+        };
+
+        const capturePhoto = () => {
+            if (videoRef.current && canvasRef.current) {
+                const context = canvasRef.current.getContext('2d');
+                canvasRef.current.width = videoRef.current.videoWidth;
+                canvasRef.current.height = videoRef.current.videoHeight;
+                context.drawImage(videoRef.current, 0, 0);
+                const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
+                setCurrentImage(imageDataUrl);
+                stopCamera();
+                // Automatically process the captured image
+                setTimeout(() => {
+                    processImageDirectly(imageDataUrl);
+                }, 500);
+            }
+        };
+
+        // Handle file upload
+        const handleFileUpload = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setCurrentImage(event.target.result);
+                    // Automatically process the image after upload
+                    setTimeout(() => {
+                        processImageDirectly(event.target.result);
+                    }, 500);
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Direct image processing function
+        const processImageDirectly = async (imageData) => {
+            if (!imageData) return;
+            
+            setIsProcessing(true);
+            
+            // Check if Tesseract is loaded
+            if (!window.Tesseract) {
+                console.log('Tesseract not loaded yet, waiting...');
+                // Wait for Tesseract to load
+                let attempts = 0;
+                const checkTesseract = setInterval(() => {
+                    attempts++;
+                    if (window.Tesseract) {
+                        clearInterval(checkTesseract);
+                        performOCR(imageData);
+                    } else if (attempts > 20) {
+                        clearInterval(checkTesseract);
+                        setIsProcessing(false);
+                        // If OCR fails, provide manual entry with the image
+                        setEditingMedicine({
+                            id: Date.now(),
+                            name: '',
+                            strength: '',
+                            quantity: '',
+                            purpose: '',
+                            image: imageData
+                        });
+                    }
+                }, 500);
+            } else {
+                performOCR(imageData);
+            }
+        };
+
+        // Perform OCR operation
+        const performOCR = async (imageData) => {
+            try {
+                console.log('Starting OCR processing...');
+                const result = await window.Tesseract.recognize(
+                    imageData,
+                    'eng+ara',
+                    {
+                        logger: info => {
+                            console.log(info);
+                        }
+                    }
+                );
+
+                const text = result.data.text;
+                console.log('Extracted text:', text);
+                
+                const extractedInfo = extractMedicineInfo(text);
+                
+                setEditingMedicine({
+                    id: Date.now(),
+                    ...extractedInfo,
+                    image: imageData
+                });
+                
+            } catch (error) {
+                console.error('OCR Error:', error);
+                alert('Error processing image. Please check the image quality and try again, or enter details manually.');
+                setEditingMedicine({
+                    id: Date.now(),
+                    name: '',
+                    strength: '',
+                    quantity: '',
+                    purpose: '',
+                    image: imageData
+                });
+            } finally {
+                setIsProcessing(false);
+            }
+        };
+
+        // Extract medicine information from OCR text
+        const extractMedicineInfo = (text) => {
+            if (!text) {
+                return {
+                    name: '',
+                    strength: '',
+                    quantity: '',
+                    purpose: ''
+                };
+            }
+            
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            // Enhanced patterns for extraction
+            const strengthPattern = /(\d+(?:\.\d+)?)\s*(mg|ml|mcg|g|iu|unit|IU|μg|µg|gram|microgram|milligram)/gi;
+            const quantityPattern = /(\d+)\s*(tablet|capsule|pill|piece|bottle|vial|ampule|softgel|gummies|count|tabs|caps|قرص|كبسولة|حبة|عبوة)/gi;
+            
+            // Vitamin-specific patterns
+            const vitaminPattern = /(vitamin\s*[A-Z]?\d*|vit\s*[A-Z]?\d*|[A-Z]-complex|multivitamin|mineral|supplement)/gi;
+            
+            const strengthMatch = text.match(strengthPattern);
+            const quantityMatch = text.match(quantityPattern);
+            const vitaminMatch = text.match(vitaminPattern);
+            
+            // Extract medicine name - look for brand names or vitamin names
+            let name = '';
+            if (vitaminMatch) {
+                name = vitaminMatch[0];
+            } else if (lines.length > 0) {
+                // Look for the most prominent text (usually first line or largest text)
+                name = lines[0];
+                // Clean up common non-name elements
+                name = name.replace(/^\d+\s*mg/i, '').trim();
+            }
+            
+            // Extract strength - may have multiple values for vitamins
+            let strength = '';
+            if (strengthMatch) {
+                strength = strengthMatch.map(s => s.trim()).join(', ');
+            }
+            
+            // Extract quantity
+            let quantity = '';
+            if (quantityMatch) {
+                quantity = quantityMatch[0];
+            }
+            
+            // Extract purpose - enhanced for vitamins
+            const purposeKeywords = [
+                'for', 'treatment', 'relief', 'pain', 'fever', 'antibiotic', 
+                'vitamin', 'supplement', 'immune', 'energy', 'bone', 'health',
+                'support', 'daily', 'dietary', 'nutritional', 'antioxidant',
+                'calcium', 'iron', 'zinc', 'magnesium', 'omega'
+            ];
+            
+            let purpose = '';
+            for (const line of lines) {
+                if (purposeKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
+                    purpose = line;
+                    break;
+                }
+            }
+            
+            // If no purpose found but it's a vitamin, set a default purpose
+            if (!purpose && vitaminMatch) {
+                purpose = 'Dietary supplement';
+            }
+            
+            return {
+                name: name.substring(0, 50).trim(),
+                strength: strength.substring(0, 50).trim(),
+                quantity: quantity.trim(),
+                purpose: purpose.substring(0, 100).trim()
+            };
+        };
+
+        // Save medicine to list
+        const saveMedicine = () => {
+            if (editingMedicine) {
+                const existingIndex = medicines.findIndex(m => m.id === editingMedicine.id);
+                if (existingIndex >= 0) {
+                    const updatedMedicines = [...medicines];
+                    updatedMedicines[existingIndex] = editingMedicine;
+                    setMedicines(updatedMedicines);
+                } else {
+                    setMedicines([...medicines, editingMedicine]);
+                }
+                setEditingMedicine(null);
+                setCurrentImage(null);
+            }
+        };
+
+        // Delete medicine
+        const deleteMedicine = (id) => {
+            setMedicines(medicines.filter(m => m.id !== id));
+        };
+
+        // Export to CSV
+        const exportToCSV = () => {
+            const headers = ['Medicine Name', 'Strength (mg)', 'Quantity', 'Purpose/Benefits'];
+            const csvContent = [
+                headers.join(','),
+                ...medicines.map(m => 
+                    `"${m.name}","${m.strength}","${m.quantity}","${m.purpose}"`
+                )
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'medicine_inventory.csv';
+            link.click();
+        };
+
+        // Share via email
+        const shareViaEmail = () => {
+            const csvContent = medicines.map(m => 
+                `${m.name} - ${m.strength} - Qty: ${m.quantity} - ${m.purpose}`
+            ).join('\n');
+            
+            const subject = encodeURIComponent('Medicine Inventory');
+            const body = encodeURIComponent(`Medicine Inventory List:\n\n${csvContent}`);
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        };
+
+        return (
+            <div className="min-h-screen bg-black text-white p-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+                {/* Header */}
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+                        <h1 className="text-3xl font-bold flex items-center gap-3">
+                            <FileSpreadsheet className="text-blue-500" />
+                            {t.title}
+                        </h1>
+                        <button
+                            onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition"
+                        >
+                            <Globe size={20} />
+                            {language === 'en' ? 'العربية' : 'English'}
+                        </button>
+                    </div>
+
+                    {/* Camera/Upload Section */}
+                    <div className="bg-gray-900 rounded-xl p-6 mb-8">
+                        {!currentImage && !isCameraActive && (
+                            <div className="flex flex-wrap gap-4 justify-center">
+                                <button
+                                    onClick={startCamera}
+                                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                                >
+                                    <Camera size={20} />
+                                    {t.startCamera}
+                                </button>
+                                <label className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition cursor-pointer">
+                                    <Plus size={20} />
+                                    {t.uploadImage}
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                    />
+                                </label>
+                                <button
+                                    onClick={() => setEditingMedicine({
+                                        id: Date.now(),
+                                        name: '',
+                                        strength: '',
+                                        quantity: '',
+                                        purpose: ''
+                                    })}
+                                    className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition"
+                                >
+                                    <Plus size={20} />
+                                    {t.addManually}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Camera View */}
+                        {isCameraActive && (
+                            <div className="space-y-4">
+                                <video
+                                    ref={videoRef}
+                                    autoPlay
+                                    playsInline
+                                    className="w-full max-w-md mx-auto rounded-lg"
+                                />
+                                <div className="flex justify-center gap-4">
+                                    <button
+                                        onClick={capturePhoto}
+                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                                    >
+                                        {t.takePhoto}
+                                    </button>
+                                    <button
+                                        onClick={stopCamera}
+                                        className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg transition"
+                                    >
+                                        {t.stopCamera}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Preview captured/uploaded image */}
+                        {currentImage && !editingMedicine && isProcessing && (
+                            <div className="space-y-4">
+                                <img 
+                                    src={currentImage} 
+                                    alt="Processing medicine" 
+                                    className="max-w-md mx-auto rounded-lg opacity-50"
+                                />
+                                <div className="text-center">
+                                    <div className="inline-flex items-center gap-3">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                        <span className="text-lg">{t.processing}</span>
+                                    </div>
+                                    <p className="text-gray-400 mt-2">Extracting text from image...</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <canvas ref={canvasRef} className="hidden" />
+                    </div>
+
+                    {/* Edit Form */}
+                    {editingMedicine && (
+                        <div className="bg-gray-900 rounded-xl p-6 mb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">{t.name}</label>
+                                    <input
+                                        type="text"
+                                        value={editingMedicine.name}
+                                        onChange={(e) => setEditingMedicine({...editingMedicine, name: e.target.value})}
+                                        className="w-full px-4 py-2 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">{t.strength}</label>
+                                    <input
+                                        type="text"
+                                        value={editingMedicine.strength}
+                                        onChange={(e) => setEditingMedicine({...editingMedicine, strength: e.target.value})}
+                                        className="w-full px-4 py-2 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">{t.quantity}</label>
+                                    <input
+                                        type="text"
+                                        value={editingMedicine.quantity}
+                                        onChange={(e) => setEditingMedicine({...editingMedicine, quantity: e.target.value})}
+                                        className="w-full px-4 py-2 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">{t.purpose}</label>
+                                    <input
+                                        type="text"
+                                        value={editingMedicine.purpose}
+                                        onChange={(e) => setEditingMedicine({...editingMedicine, purpose: e.target.value})}
+                                        className="w-full px-4 py-2 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-4 mt-6 justify-end">
+                                <button
+                                    onClick={saveMedicine}
+                                    className="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition"
+                                >
+                                    {t.save}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setEditingMedicine(null);
+                                        setCurrentImage(null);
+                                    }}
+                                    className="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition"
+                                >
+                                    {t.cancel}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Export Actions */}
+                    {medicines.length > 0 && (
+                        <div className="flex flex-wrap gap-4 mb-8 justify-center">
+                            <button
+                                onClick={exportToCSV}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition"
+                            >
+                                <Download size={18} />
+                                {t.exportCSV}
+                            </button>
+                            <button
+                                onClick={shareViaEmail}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                            >
+                                <Mail size={18} />
+                                {t.shareEmail}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    localStorage.setItem('medicineInventory', JSON.stringify(medicines));
+                                    alert('Saved to device!');
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition"
+                            >
+                                <Save size={18} />
+                                {t.saveDevice}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Medicine Table */}
+                    <div className="bg-gray-900 rounded-xl overflow-hidden">
+                        {medicines.length > 0 ? (
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-gray-800">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left">{t.name}</th>
+                                            <th className="px-6 py-3 text-left">{t.strength}</th>
+                                            <th className="px-6 py-3 text-left">{t.quantity}</th>
+                                            <th className="px-6 py-3 text-left">{t.purpose}</th>
+                                            <th className="px-6 py-3 text-left">{t.actions}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {medicines.map((medicine, index) => (
+                                            <tr key={medicine.id} className={index % 2 === 0 ? 'bg-gray-850' : 'bg-gray-900'}>
+                                                <td className="px-6 py-4 border-t border-gray-800">{medicine.name}</td>
+                                                <td className="px-6 py-4 border-t border-gray-800">{medicine.strength}</td>
+                                                <td className="px-6 py-4 border-t border-gray-800">{medicine.quantity}</td>
+                                                <td className="px-6 py-4 border-t border-gray-800">{medicine.purpose}</td>
+                                                <td className="px-6 py-4 border-t border-gray-800">
+                                                    <button
+                                                        onClick={() => deleteMedicine(medicine.id)}
+                                                        className="text-red-500 hover:text-red-400 transition"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-gray-500">
+                                <FileSpreadsheet size={48} className="mx-auto mb-4 opacity-50" />
+                                <p>{t.noMedicines}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+                        <p>{t.version}</p>
+                        <p className="mt-1">{t.developedBy}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    ReactDOM.render(<MedicineInventoryApp />, document.getElementById('root'));
+</script>
+```
+
+</body>
+</html>
