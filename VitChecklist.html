@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Vitamin Checklist - Hasan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+
+    .header .date {
+        font-size: 1.1em;
+        opacity: 0.9;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 20px;
+        background: #f7fafc;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .stat-card .number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .stat-card .label {
+        font-size: 0.9em;
+        color: #718096;
+        margin-top: 5px;
+    }
+
+    .content {
+        padding: 30px;
+    }
+
+    .time-section {
+        margin-bottom: 30px;
+        border-left: 4px solid #667eea;
+        padding-left: 20px;
+    }
+
+    .time-section h2 {
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+    }
+
+    .time-section .time-icon {
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    .vitamin-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f7fafc;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .vitamin-item:hover {
+        background: #edf2f7;
+        transform: translateX(5px);
+    }
+
+    .vitamin-item.checked {
+        background: #c6f6d5;
+        border-left: 4px solid #48bb78;
+    }
+
+    .checkbox {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #cbd5e0;
+        border-radius: 6px;
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .vitamin-item.checked .checkbox {
+        background: #48bb78;
+        border-color: #48bb78;
+    }
+
+    .checkbox::after {
+        content: '✓';
+        color: white;
+        font-weight: bold;
+        display: none;
+    }
+
+    .vitamin-item.checked .checkbox::after {
+        display: block;
+    }
+
+    .vitamin-info {
+        flex: 1;
+    }
+
+    .vitamin-name {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 3px;
+    }
+
+    .vitamin-dose {
+        font-size: 0.85em;
+        color: #718096;
+    }
+
+    .vitamin-note {
+        font-size: 0.8em;
+        color: #e53e3e;
+        margin-top: 3px;
+        font-style: italic;
+    }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+        padding: 20px 30px;
+        background: #f7fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reset {
+        background: #fc8181;
+        color: white;
+    }
+
+    .btn-reset:hover {
+        background: #f56565;
+        transform: translateY(-2px);
+    }
+
+    .btn-history {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-history:hover {
+        background: #5a67d8;
+        transform: translateY(-2px);
+    }
+
+    .history-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .history-modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        color: #2d3748;
+    }
+
+    .close-btn {
+        background: #fc8181;
+        color: white;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.2em;
+    }
+
+    .history-item {
+        padding: 15px;
+        background: #f7fafc;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .history-date {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+
+    .footer {
+        text-align: center;
+        padding: 20px;
+        color: #718096;
+        font-size: 0.9em;
+    }
+
+    @media (max-width: 600px) {
+        .stats {
+            grid-template-columns: 1fr;
+        }
+
+        .actions {
+            flex-direction: column;
+        }
+    }
+
+    .notes-section {
+        background: #fffbeb;
+        border: 2px solid #fbbf24;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 20px 0;
+    }
+
+    .notes-section h3 {
+        color: #92400e;
+        margin-bottom: 10px;
+    }
+
+    .notes-section ul {
+        list-style-position: inside;
+        color: #78350f;
+    }
+
+    .notes-section li {
+        margin-bottom: 5px;
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💊 Daily Vitamin Checklist</h1>
+            <div class="date" id="currentDate"></div>
+        </div>
+
+```
+    <div class="stats">
+        <div class="stat-card">
+            <div class="number" id="totalCount">0</div>
+            <div class="label">Total Items</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="completedCount">0</div>
+            <div class="label">Completed</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="percentComplete">0%</div>
+            <div class="label">Progress</div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="notes-section">
+            <h3>⚠️ Important Reminders:</h3>
+            <ul>
+                <li><strong>Vitamin D3 50,000 IU:</strong> Take ONCE per week only (e.g., every Sunday)</li>
+                <li><strong>Zinc 50mg:</strong> Take only 5 days per week (skip 2 days)</li>
+                <li><strong>Vitamins with fat:</strong> Take D3, K2, Omega-3 with meals containing fat</li>
+                <li>If you skip breakfast, take "With Breakfast" vitamins with your first meal</li>
+            </ul>
+        </div>
+
+        <!-- Upon Waking -->
+        <div class="time-section">
+            <h2><span class="time-icon">🌅</span>Upon Waking (Empty Stomach)</h2>
+            <div class="vitamin-item" data-id="d3">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Vitamin D3</div>
+                    <div class="vitamin-dose">50,000 IU - 1 capsule</div>
+                    <div class="vitamin-note">⚠️ ONCE WEEKLY ONLY (e.g., Sundays)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- With Breakfast -->
+        <div class="time-section">
+            <h2><span class="time-icon">🍳</span>With Breakfast (Must contain fats)</h2>
+            <div class="vitamin-item" data-id="omega3">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Omega-3 Fish Oil</div>
+                    <div class="vitamin-dose">1,250 mg - 1 softgel</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="ubiquinol">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Ubiquinol + PQQ</div>
+                    <div class="vitamin-dose">100mg/10mg - 1 capsule</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="k2">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Vitamin K2</div>
+                    <div class="vitamin-dose">45,000 mcg MK4 - 1 capsule</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="calcium">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Calcium + D3</div>
+                    <div class="vitamin-dose">650mg + 400 IU - 1 caplet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- After Breakfast -->
+        <div class="time-section">
+            <h2><span class="time-icon">☕</span>30 Minutes After Breakfast</h2>
+            <div class="vitamin-item" data-id="carnitine">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">L-Carnitine</div>
+                    <div class="vitamin-dose">15 ml (1 tablespoon)</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="vitaminc">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Vitamin C</div>
+                    <div class="vitamin-dose">1,000 mg - 1 tablet</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="zinc">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Zinc Picolinate</div>
+                    <div class="vitamin-dose">50 mg - 1 capsule</div>
+                    <div class="vitamin-note">⚠️ 5 days per week only</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- With Lunch -->
+        <div class="time-section">
+            <h2><span class="time-icon">🍽️</span>With Lunch</h2>
+            <div class="vitamin-item" data-id="magmalate">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Magnesium Malate</div>
+                    <div class="vitamin-dose">3,750 mg - 2 capsules</div>
+                    <div class="vitamin-note">Energy boosting - take during day</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="glucosamine">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Glucosamine & Chondroitin with MSM</div>
+                    <div class="vitamin-dose">1 capsule</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="garlic">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Kyolic Aged Garlic Extract</div>
+                    <div class="vitamin-dose">2 capsules</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="turmeric">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Turmeric Curcumin Complex</div>
+                    <div class="vitamin-dose">2,000 mg - 1 capsule</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Afternoon -->
+        <div class="time-section">
+            <h2><span class="time-icon">☀️</span>Afternoon (3-4 PM)</h2>
+            <div class="vitamin-item" data-id="rhodiola">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Rhodiola</div>
+                    <div class="vitamin-dose">500 mg - 1 capsule</div>
+                    <div class="vitamin-note">For energy and mood</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="nac">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">NAC</div>
+                    <div class="vitamin-dose">1,200 mg - 1 tablet</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="selenium">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Super Selenium Complex</div>
+                    <div class="vitamin-dose">200 mcg - 1 capsule</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evening -->
+        <div class="time-section">
+            <h2><span class="time-icon">🌙</span>Evening (2 hours before bed)</h2>
+            <div class="vitamin-item" data-id="theanine">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">L-Theanine</div>
+                    <div class="vitamin-dose">200 mg - 1 capsule</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="maggly">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Magnesium Glycinate</div>
+                    <div class="vitamin-dose">350 mg - 1 capsule</div>
+                    <div class="vitamin-note">Relaxing - for sleep and muscles</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="ashwagandha">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Ashwagandha Extract</div>
+                    <div class="vitamin-dose">500 mg - 1 capsule</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="b12">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Methyl B-12</div>
+                    <div class="vitamin-dose">5,000 mcg - 1 capsule (under tongue)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Before Bed -->
+        <div class="time-section">
+            <h2><span class="time-icon">😴</span>Right Before Bed</h2>
+            <div class="vitamin-item" data-id="lithium">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Lithium Orotate</div>
+                    <div class="vitamin-dose">5 mg - 1 capsule</div>
+                    <div class="vitamin-note">For mood and sleep</div>
+                </div>
+            </div>
+            <div class="vitamin-item" data-id="potassium">
+                <div class="checkbox"></div>
+                <div class="vitamin-info">
+                    <div class="vitamin-name">Potassium</div>
+                    <div class="vitamin-dose">195 mg - 1 tablet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-reset" onclick="resetToday()">🔄 Reset Today</button>
+        <button class="btn btn-history" onclick="showHistory()">📊 View History</button>
+    </div>
+
+    <div class="footer">
+        Made with ❤️ for Hasan | Data saved locally in your browser
+    </div>
+</div>
+
+<!-- History Modal -->
+<div class="history-modal" id="historyModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📊 Completion History</h2>
+            <button class="close-btn" onclick="closeHistory()">×</button>
+        </div>
+        <div id="historyContent">
+            <!-- History will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get today's date key
+    function getTodayKey() {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
+    }
+
+    // Get formatted date
+    function getFormattedDate() {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date().toLocaleDateString('en-US', options);
+    }
+
+    // Update date display
+    document.getElementById('currentDate').textContent = getFormattedDate();
+
+    // Load today's data
+    function loadTodayData() {
+        const todayKey = getTodayKey();
+        const data = localStorage.getItem(todayKey);
+        return data ? JSON.parse(data) : {};
+    }
+
+    // Save today's data
+    function saveTodayData(data) {
+        const todayKey = getTodayKey();
+        localStorage.setItem(todayKey, JSON.stringify(data));
+    }
+
+    // Update statistics
+    function updateStats() {
+        const items = document.querySelectorAll('.vitamin-item');
+        const checked = document.querySelectorAll('.vitamin-item.checked');
+        const total = items.length;
+        const completed = checked.length;
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        document.getElementById('totalCount').textContent = total;
+        document.getElementById('completedCount').textContent = completed;
+        document.getElementById('percentComplete').textContent = percent + '%';
+    }
+
+    // Initialize checklist
+    function initChecklist() {
+        const todayData = loadTodayData();
+        const items = document.querySelectorAll('.vitamin-item');
+
+        items.forEach(item => {
+            const id = item.dataset.id;
+            if (todayData[id]) {
+                item.classList.add('checked');
+            }
+
+            item.addEventListener('click', function() {
+                this.classList.toggle('checked');
+                const data = loadTodayData();
+                const itemId = this.dataset.id;
+                
+                if (this.classList.contains('checked')) {
+                    data[itemId] = {
+                        checked: true,
+                        time: new Date().toLocaleTimeString()
+                    };
+                } else {
+                    delete data[itemId];
+                }
+                
+                saveTodayData(data);
+                updateStats();
+            });
+        });
+
+        updateStats();
+    }
+
+    // Reset today's checklist
+    function resetToday() {
+        if (confirm('Are you sure you want to reset today\'s checklist?')) {
+            const todayKey = getTodayKey();
+            localStorage.removeItem(todayKey);
+            
+            document.querySelectorAll('.vitamin-item').forEach(item => {
+                item.classList.remove('checked');
+            });
+            
+            updateStats();
+        }
+    }
+
+    // Show history
+    function showHistory() {
+        const historyContent = document.getElementById('historyContent');
+        const allKeys = Object.keys(localStorage).filter(key => key.match(/^\d{4}-\d{2}-\d{2}$/)).sort().reverse();
+        
+        if (allKeys.length === 0) {
+            historyContent.innerHTML = '<p style="text-align:center; color:#718096;">No history yet. Start checking off your vitamins!</p>';
+        } else {
+            let html = '';
+            allKeys.slice(0, 30).forEach(dateKey => {
+                const data = JSON.parse(localStorage.getItem(dateKey));
+                const checkedCount = Object.keys(data).length;
+                const date = new Date(dateKey);
+                const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                
+                html += `
+                    <div class="history-item">
+                        <div class="history-date">${formattedDate}</div>
+                        <div>Completed: ${checkedCount} items</div>
+                    </div>
+                `;
+            });
+            historyContent.innerHTML = html;
+        }
+        
+        document.getElementById('historyModal').classList.add('active');
+    }
+
+    // Close history modal
+    function closeHistory() {
+        document.getElementById('historyModal').classList.remove('active');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', initChecklist);
+
+    // Close modal when clicking outside
+    document.getElementById('historyModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeHistory();
+        }
+    });
+</script>
+```
+
+</body>
+</html>
