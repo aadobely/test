@@ -103,17 +103,23 @@
         background: #f7fafc;
         border-radius: 10px;
         transition: all 0.3s ease;
-        cursor: pointer;
+        position: relative;
     }
 
     .vitamin-item:hover {
         background: #edf2f7;
-        transform: translateX(5px);
     }
 
     .vitamin-item.checked {
         background: #c6f6d5;
         border-left: 4px solid #48bb78;
+    }
+
+    .checkbox-area {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        cursor: pointer;
     }
 
     .checkbox {
@@ -126,6 +132,7 @@
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
+        flex-shrink: 0;
     }
 
     .vitamin-item.checked .checkbox {
@@ -159,11 +166,37 @@
         color: #718096;
     }
 
+    .vitamin-benefit {
+        font-size: 0.8em;
+        color: #4299e1;
+        margin-top: 3px;
+        font-style: italic;
+    }
+
     .vitamin-note {
         font-size: 0.8em;
         color: #e53e3e;
         margin-top: 3px;
         font-style: italic;
+    }
+
+    .edit-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        margin-left: 10px;
+    }
+
+    .edit-btn:hover {
+        background: #5a67d8;
+        transform: scale(1.1);
     }
 
     .actions {
@@ -205,7 +238,7 @@
         transform: translateY(-2px);
     }
 
-    .history-modal {
+    .modal {
         display: none;
         position: fixed;
         top: 0;
@@ -218,7 +251,7 @@
         justify-content: center;
     }
 
-    .history-modal.active {
+    .modal.active {
         display: flex;
     }
 
@@ -227,6 +260,7 @@
         border-radius: 15px;
         padding: 30px;
         max-width: 600px;
+        width: 90%;
         max-height: 80vh;
         overflow-y: auto;
         box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -252,6 +286,62 @@
         border-radius: 50%;
         cursor: pointer;
         font-size: 1.2em;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1em;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-save {
+        background: #48bb78;
+        color: white;
+    }
+
+    .btn-save:hover {
+        background: #38a169;
+    }
+
+    .btn-cancel {
+        background: #cbd5e0;
+        color: #2d3748;
+    }
+
+    .btn-cancel:hover {
+        background: #a0aec0;
     }
 
     .history-item {
@@ -347,12 +437,16 @@
         <div class="time-section">
             <h2><span class="time-icon">🌅</span>Upon Waking (Empty Stomach)</h2>
             <div class="vitamin-item" data-id="d3">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Vitamin D3</div>
-                    <div class="vitamin-dose">50,000 IU - 1 capsule</div>
-                    <div class="vitamin-note">⚠️ ONCE WEEKLY ONLY (e.g., Sundays)</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Vitamin D3</div>
+                        <div class="vitamin-dose">50,000 IU - 1 capsule</div>
+                        <div class="vitamin-benefit">Bone health, immune system, mood regulation</div>
+                        <div class="vitamin-note">⚠️ ONCE WEEKLY ONLY (e.g., Sundays)</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('d3')">✏️</button>
             </div>
         </div>
 
@@ -360,32 +454,48 @@
         <div class="time-section">
             <h2><span class="time-icon">🍳</span>With Breakfast (Must contain fats)</h2>
             <div class="vitamin-item" data-id="omega3">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Omega-3 Fish Oil</div>
-                    <div class="vitamin-dose">1,250 mg - 1 softgel</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Omega-3 Fish Oil</div>
+                        <div class="vitamin-dose">1,250 mg - 1 softgel</div>
+                        <div class="vitamin-benefit">Heart health, brain function, reduces inflammation</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('omega3')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="ubiquinol">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Ubiquinol + PQQ</div>
-                    <div class="vitamin-dose">100mg/10mg - 1 capsule</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Ubiquinol + PQQ</div>
+                        <div class="vitamin-dose">100mg/10mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Cellular energy production, mitochondrial health</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('ubiquinol')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="k2">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Vitamin K2</div>
-                    <div class="vitamin-dose">45,000 mcg MK4 - 1 capsule</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Vitamin K2</div>
+                        <div class="vitamin-dose">45,000 mcg MK4 - 1 capsule</div>
+                        <div class="vitamin-benefit">Bone strength, directs calcium to bones (not arteries)</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('k2')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="calcium">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Calcium + D3</div>
-                    <div class="vitamin-dose">650mg + 400 IU - 1 caplet</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Calcium + D3</div>
+                        <div class="vitamin-dose">650mg + 400 IU - 1 caplet</div>
+                        <div class="vitamin-benefit">Bone density, muscle function, nerve signaling</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('calcium')">✏️</button>
             </div>
         </div>
 
@@ -393,26 +503,38 @@
         <div class="time-section">
             <h2><span class="time-icon">☕</span>30 Minutes After Breakfast</h2>
             <div class="vitamin-item" data-id="carnitine">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">L-Carnitine</div>
-                    <div class="vitamin-dose">15 ml (1 tablespoon)</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">L-Carnitine</div>
+                        <div class="vitamin-dose">15 ml (1 tablespoon)</div>
+                        <div class="vitamin-benefit">Fat metabolism, energy production, muscle recovery</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('carnitine')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="vitaminc">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Vitamin C</div>
-                    <div class="vitamin-dose">1,000 mg - 1 tablet</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Vitamin C</div>
+                        <div class="vitamin-dose">1,000 mg - 1 tablet</div>
+                        <div class="vitamin-benefit">Immune support, antioxidant, collagen production</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('vitaminc')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="zinc">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Zinc Picolinate</div>
-                    <div class="vitamin-dose">50 mg - 1 capsule</div>
-                    <div class="vitamin-note">⚠️ 5 days per week only</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Zinc Picolinate</div>
+                        <div class="vitamin-dose">50 mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Immune function, wound healing, protein synthesis</div>
+                        <div class="vitamin-note">⚠️ 5 days per week only</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('zinc')">✏️</button>
             </div>
         </div>
 
@@ -420,33 +542,48 @@
         <div class="time-section">
             <h2><span class="time-icon">🍽️</span>With Lunch</h2>
             <div class="vitamin-item" data-id="magmalate">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Magnesium Malate</div>
-                    <div class="vitamin-dose">3,750 mg - 2 capsules</div>
-                    <div class="vitamin-note">Energy boosting - take during day</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Magnesium Malate</div>
+                        <div class="vitamin-dose">3,750 mg - 2 capsules</div>
+                        <div class="vitamin-benefit">Energy boosting, muscle energy, reduces fatigue</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('magmalate')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="glucosamine">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Glucosamine & Chondroitin with MSM</div>
-                    <div class="vitamin-dose">1 capsule</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Glucosamine & Chondroitin with MSM</div>
+                        <div class="vitamin-dose">1 capsule</div>
+                        <div class="vitamin-benefit">Joint health, cartilage support, reduces inflammation</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('glucosamine')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="garlic">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Kyolic Aged Garlic Extract</div>
-                    <div class="vitamin-dose">2 capsules</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Kyolic Aged Garlic Extract</div>
+                        <div class="vitamin-dose">2 capsules</div>
+                        <div class="vitamin-benefit">Heart health, cholesterol management, blood pressure</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('garlic')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="turmeric">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Turmeric Curcumin Complex</div>
-                    <div class="vitamin-dose">2,000 mg - 1 capsule</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Turmeric Curcumin Complex</div>
+                        <div class="vitamin-dose">2,000 mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Anti-inflammatory, antioxidant, joint support</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('turmeric')">✏️</button>
             </div>
         </div>
 
@@ -454,26 +591,37 @@
         <div class="time-section">
             <h2><span class="time-icon">☀️</span>Afternoon (3-4 PM)</h2>
             <div class="vitamin-item" data-id="rhodiola">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Rhodiola</div>
-                    <div class="vitamin-dose">500 mg - 1 capsule</div>
-                    <div class="vitamin-note">For energy and mood</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Rhodiola</div>
+                        <div class="vitamin-dose">500 mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Adaptogen: reduces fatigue, improves mood and focus</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('rhodiola')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="nac">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">NAC</div>
-                    <div class="vitamin-dose">1,200 mg - 1 tablet</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">NAC</div>
+                        <div class="vitamin-dose">1,200 mg - 1 tablet</div>
+                        <div class="vitamin-benefit">Liver detox, antioxidant, respiratory health</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('nac')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="selenium">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Super Selenium Complex</div>
-                    <div class="vitamin-dose">200 mcg - 1 capsule</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Super Selenium Complex</div>
+                        <div class="vitamin-dose">200 mcg - 1 capsule</div>
+                        <div class="vitamin-benefit">Thyroid function, antioxidant, immune support</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('selenium')">✏️</button>
             </div>
         </div>
 
@@ -481,33 +629,48 @@
         <div class="time-section">
             <h2><span class="time-icon">🌙</span>Evening (2 hours before bed)</h2>
             <div class="vitamin-item" data-id="theanine">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">L-Theanine</div>
-                    <div class="vitamin-dose">200 mg - 1 capsule</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">L-Theanine</div>
+                        <div class="vitamin-dose">200 mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Relaxation, reduces anxiety, improves sleep quality</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('theanine')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="maggly">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Magnesium Glycinate</div>
-                    <div class="vitamin-dose">350 mg - 1 capsule</div>
-                    <div class="vitamin-note">Relaxing - for sleep and muscles</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Magnesium Glycinate</div>
+                        <div class="vitamin-dose">350 mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Relaxing, sleep aid, muscle relaxation, calming</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('maggly')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="ashwagandha">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Ashwagandha Extract</div>
-                    <div class="vitamin-dose">500 mg - 1 capsule</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Ashwagandha Extract</div>
+                        <div class="vitamin-dose">500 mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Stress relief, cortisol reduction, better sleep</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('ashwagandha')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="b12">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Methyl B-12</div>
-                    <div class="vitamin-dose">5,000 mcg - 1 capsule (under tongue)</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Methyl B-12</div>
+                        <div class="vitamin-dose">5,000 mcg - 1 capsule (under tongue)</div>
+                        <div class="vitamin-benefit">Energy production, nerve health, mood support</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('b12')">✏️</button>
             </div>
         </div>
 
@@ -515,19 +678,26 @@
         <div class="time-section">
             <h2><span class="time-icon">😴</span>Right Before Bed</h2>
             <div class="vitamin-item" data-id="lithium">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Lithium Orotate</div>
-                    <div class="vitamin-dose">5 mg - 1 capsule</div>
-                    <div class="vitamin-note">For mood and sleep</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Lithium Orotate</div>
+                        <div class="vitamin-dose">5 mg - 1 capsule</div>
+                        <div class="vitamin-benefit">Mood stabilization, neuroprotection, sleep support</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('lithium')">✏️</button>
             </div>
             <div class="vitamin-item" data-id="potassium">
-                <div class="checkbox"></div>
-                <div class="vitamin-info">
-                    <div class="vitamin-name">Potassium</div>
-                    <div class="vitamin-dose">195 mg - 1 tablet</div>
+                <div class="checkbox-area">
+                    <div class="checkbox"></div>
+                    <div class="vitamin-info">
+                        <div class="vitamin-name">Potassium</div>
+                        <div class="vitamin-dose">195 mg - 1 tablet</div>
+                        <div class="vitamin-benefit">Electrolyte balance, muscle function, blood pressure</div>
+                    </div>
                 </div>
+                <button class="edit-btn" onclick="editVitamin('potassium')">✏️</button>
             </div>
         </div>
     </div>
@@ -538,47 +708,129 @@
     </div>
 
     <div class="footer">
-        Made with ❤️ for Hasan | Data saved locally in your browser
+        Made with ❤️ for Hasan | Toronto Timezone | Data saved locally
     </div>
 </div>
 
 <!-- History Modal -->
-<div class="history-modal" id="historyModal">
+<div class="modal" id="historyModal">
     <div class="modal-content">
         <div class="modal-header">
             <h2>📊 Completion History</h2>
             <button class="close-btn" onclick="closeHistory()">×</button>
         </div>
-        <div id="historyContent">
-            <!-- History will be loaded here -->
+        <div id="historyContent"></div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>✏️ Edit Vitamin</h2>
+            <button class="close-btn" onclick="closeEdit()">×</button>
         </div>
+        <form id="editForm">
+            <div class="form-group">
+                <label for="editName">Vitamin Name:</label>
+                <input type="text" id="editName" required>
+            </div>
+            <div class="form-group">
+                <label for="editDose">Dose/Quantity:</label>
+                <input type="text" id="editDose" required>
+            </div>
+            <div class="form-group">
+                <label for="editBenefit">Benefits (optional):</label>
+                <textarea id="editBenefit" placeholder="e.g., Energy boosting, immune support..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editNote">Special Note (optional):</label>
+                <textarea id="editNote" placeholder="e.g., Take once weekly only..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-save">💾 Save Changes</button>
+                <button type="button" class="btn btn-cancel" onclick="closeEdit()">Cancel</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    // Get today's date key
-    function getTodayKey() {
-        const today = new Date();
-        return today.toISOString().split('T')[0];
+    // Toronto timezone handling
+    function getTorontoDate() {
+        const now = new Date();
+        // Convert to Toronto time (EST/EDT)
+        const torontoTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+        return torontoTime;
     }
 
-    // Get formatted date
+    function getTodayKey() {
+        const torontoDate = getTorontoDate();
+        const year = torontoDate.getFullYear();
+        const month = String(torontoDate.getMonth() + 1).padStart(2, '0');
+        const day = String(torontoDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     function getFormattedDate() {
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date().toLocaleDateString('en-US', options);
+        const torontoDate = getTorontoDate();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Toronto' };
+        return torontoDate.toLocaleDateString('en-US', options);
     }
 
     // Update date display
     document.getElementById('currentDate').textContent = getFormattedDate();
 
-    // Load today's data
+    // Default vitamin data
+    const defaultVitamins = {
+        'd3': { name: 'Vitamin D3', dose: '50,000 IU - 1 capsule', benefit: 'Bone health, immune system, mood regulation', note: '⚠️ ONCE WEEKLY ONLY (e.g., Sundays)' },
+        'omega3': { name: 'Omega-3 Fish Oil', dose: '1,250 mg - 1 softgel', benefit: 'Heart health, brain function, reduces inflammation', note: '' },
+        'ubiquinol': { name: 'Ubiquinol + PQQ', dose: '100mg/10mg - 1 capsule', benefit: 'Cellular energy production, mitochondrial health', note: '' },
+        'k2': { name: 'Vitamin K2', dose: '45,000 mcg MK4 - 1 capsule', benefit: 'Bone strength, directs calcium to bones (not arteries)', note: '' },
+        'calcium': { name: 'Calcium + D3', dose: '650mg + 400 IU - 1 caplet', benefit: 'Bone density, muscle function, nerve signaling', note: '' },
+        'carnitine': { name: 'L-Carnitine', dose: '15 ml (1 tablespoon)', benefit: 'Fat metabolism, energy production, muscle recovery', note: '' },
+        'vitaminc': { name: 'Vitamin C', dose: '1,000 mg - 1 tablet', benefit: 'Immune support, antioxidant, collagen production', note: '' },
+        'zinc': { name: 'Zinc Picolinate', dose: '50 mg - 1 capsule', benefit: 'Immune function, wound healing, protein synthesis', note: '⚠️ 5 days per week only' },
+        'magmalate': { name: 'Magnesium Malate', dose: '3,750 mg - 2 capsules', benefit: 'Energy boosting, muscle energy, reduces fatigue', note: '' },
+        'glucosamine': { name: 'Glucosamine & Chondroitin with MSM', dose: '1 capsule', benefit: 'Joint health, cartilage support, reduces inflammation', note: '' },
+        'garlic': { name: 'Kyolic Aged Garlic Extract', dose: '2 capsules', benefit: 'Heart health, cholesterol management, blood pressure', note: '' },
+        'turmeric': { name: 'Turmeric Curcumin Complex', dose: '2,000 mg - 1 capsule', benefit: 'Anti-inflammatory, antioxidant, joint support', note: '' },
+        'rhodiola': { name: 'Rhodiola', dose: '500 mg - 1 capsule', benefit: 'Adaptogen: reduces fatigue, improves mood and focus', note: '' },
+        'nac': { name: 'NAC', dose: '1,200 mg - 1 tablet', benefit: 'Liver detox, antioxidant, respiratory health', note: '' },
+        'selenium': { name: 'Super Selenium Complex', dose: '200 mcg - 1 capsule', benefit: 'Thyroid function, antioxidant, immune support', note: '' },
+        'theanine': { name: 'L-Theanine', dose: '200 mg - 1 capsule', benefit: 'Relaxation, reduces anxiety, improves sleep quality', note: '' },
+        'maggly': { name: 'Magnesium Glycinate', dose: '350 mg - 1 capsule', benefit: 'Relaxing, sleep aid, muscle relaxation, calming', note: '' },
+        'ashwagandha': { name: 'Ashwagandha Extract', dose: '500 mg - 1 capsule', benefit: 'Stress relief, cortisol reduction, better sleep', note: '' },
+        'b12': { name: 'Methyl B-12', dose: '5,000 mcg - 1 capsule (under tongue)', benefit: 'Energy production, nerve health, mood support', note: '' },
+        'lithium': { name: 'Lithium Orotate', dose: '5 mg - 1 capsule', benefit: 'Mood stabilization, neuroprotection, sleep support', note: '' },
+        'potassium': { name: 'Potassium', dose: '195 mg - 1 tablet', benefit: 'Electrolyte balance, muscle function, blood pressure', note: '' }
+    };
+
+    // Get custom vitamins data
+    function getCustomVitamins() {
+        const stored = localStorage.getItem('customVitamins');
+        return stored ? JSON.parse(stored) : {};
+    }
+
+    // Save custom vitamins
+    function saveCustomVitamins(customData) {
+        localStorage.setItem('customVitamins', JSON.stringify(customData));
+    }
+
+    // Get vitamin data (custom or default)
+    function getVitaminData(id) {
+        const custom = getCustomVitamins();
+        return custom[id] || defaultVitamins[id];
+    }
+
+    // Load today's checklist data
     function loadTodayData() {
         const todayKey = getTodayKey();
         const data = localStorage.getItem(todayKey);
         return data ? JSON.parse(data) : {};
     }
 
-    // Save today's data
+    // Save today's checklist data
     function saveTodayData(data) {
         const todayKey = getTodayKey();
         localStorage.setItem(todayKey, JSON.stringify(data));
@@ -597,6 +849,30 @@
         document.getElementById('percentComplete').textContent = percent + '%';
     }
 
+    // Refresh vitamin display
+    function refreshVitaminDisplay() {
+        const items = document.querySelectorAll('.vitamin-item');
+        items.forEach(item => {
+            const id = item.dataset.id;
+            const vitData = getVitaminData(id);
+            
+            const nameEl = item.querySelector('.vitamin-name');
+            const doseEl = item.querySelector('.vitamin-dose');
+            const benefitEl = item.querySelector('.vitamin-benefit');
+            const noteEl = item.querySelector('.vitamin-note');
+
+            if (nameEl) nameEl.textContent = vitData.name;
+            if (doseEl) doseEl.textContent = vitData.dose;
+            if (benefitEl) benefitEl.textContent = vitData.benefit;
+            if (noteEl && vitData.note) {
+                noteEl.textContent = vitData.note;
+                noteEl.style.display = 'block';
+            } else if (noteEl) {
+                noteEl.style.display = 'none';
+            }
+        });
+    }
+
     // Initialize checklist
     function initChecklist() {
         const todayData = loadTodayData();
@@ -608,15 +884,18 @@
                 item.classList.add('checked');
             }
 
-            item.addEventListener('click', function() {
-                this.classList.toggle('checked');
+            // Handle checkbox click
+            const checkboxArea = item.querySelector('.checkbox-area');
+            checkboxArea.addEventListener('click', function() {
+                item.classList.toggle('checked');
                 const data = loadTodayData();
-                const itemId = this.dataset.id;
+                const itemId = item.dataset.id;
                 
-                if (this.classList.contains('checked')) {
+                if (item.classList.contains('checked')) {
+                    const torontoTime = getTorontoDate();
                     data[itemId] = {
                         checked: true,
-                        time: new Date().toLocaleTimeString()
+                        time: torontoTime.toLocaleTimeString('en-US', { timeZone: 'America/Toronto' })
                     };
                 } else {
                     delete data[itemId];
@@ -627,8 +906,48 @@
             });
         });
 
+        refreshVitaminDisplay();
         updateStats();
     }
+
+    // Edit vitamin
+    let currentEditId = null;
+
+    function editVitamin(id) {
+        currentEditId = id;
+        const vitData = getVitaminData(id);
+        
+        document.getElementById('editName').value = vitData.name;
+        document.getElementById('editDose').value = vitData.dose;
+        document.getElementById('editBenefit').value = vitData.benefit || '';
+        document.getElementById('editNote').value = vitData.note || '';
+        
+        document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeEdit() {
+        document.getElementById('editModal').classList.remove('active');
+        currentEditId = null;
+    }
+
+    // Handle edit form submission
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!currentEditId) return;
+        
+        const customVitamins = getCustomVitamins();
+        customVitamins[currentEditId] = {
+            name: document.getElementById('editName').value,
+            dose: document.getElementById('editDose').value,
+            benefit: document.getElementById('editBenefit').value,
+            note: document.getElementById('editNote').value
+        };
+        
+        saveCustomVitamins(customVitamins);
+        refreshVitaminDisplay();
+        closeEdit();
+    });
 
     // Reset today's checklist
     function resetToday() {
@@ -647,7 +966,10 @@
     // Show history
     function showHistory() {
         const historyContent = document.getElementById('historyContent');
-        const allKeys = Object.keys(localStorage).filter(key => key.match(/^\d{4}-\d{2}-\d{2}$/)).sort().reverse();
+        const allKeys = Object.keys(localStorage)
+            .filter(key => key.match(/^\d{4}-\d{2}-\d{2}$/))
+            .sort()
+            .reverse();
         
         if (allKeys.length === 0) {
             historyContent.innerHTML = '<p style="text-align:center; color:#718096;">No history yet. Start checking off your vitamins!</p>';
@@ -656,8 +978,13 @@
             allKeys.slice(0, 30).forEach(dateKey => {
                 const data = JSON.parse(localStorage.getItem(dateKey));
                 const checkedCount = Object.keys(data).length;
-                const date = new Date(dateKey);
-                const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                const date = new Date(dateKey + 'T12:00:00');
+                const formattedDate = date.toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
                 
                 html += `
                     <div class="history-item">
@@ -680,11 +1007,13 @@
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', initChecklist);
 
-    // Close modal when clicking outside
-    document.getElementById('historyModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeHistory();
-        }
+    // Close modals when clicking outside
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
     });
 </script>
 ```
